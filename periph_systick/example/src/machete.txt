@@ -1,0 +1,206 @@
+#define TICKRATE_10HZ (10)				/* 10 ticks per second */
+#define TICKRATE_100HZ (100)			/* 100 ticks per second */
+#define TICKRATE_1000HZ (1000)			/* 1000 ticks per second */
+#define TICKRATE_HZ1 (TICKRATE_1000HZ)
+
+#define LED_TOGGLE_250MS (250)
+#define LED_TOGGLE_500MS (500)
+#define LED_TOGGLE_MS1 (LED_TOGGLE_500MS)
+
+#define LED	(0)
+#define RED	(1)
+#define GREEN (2)
+
+#define LED_ON	(true)
+#define LED_OFF	(false)
+
+volatile bool msLED_Flag = false;
+volatile uint32_t msLED_Toggle = 0;
+
+void SysTick_Handler(void)
+{
+	if (msLED_Toggle != 0)
+		msLED_Toggle--;
+	else {
+		msLED_Toggle = LED_TOGGLE_MS1;
+		msLED_Flag = true;
+	}
+}
+
+int main(void)
+{
+	/* Generic Initialization */
+	SystemCoreClockUpdate();
+	Board_Init();
+	Board_LED_Set(LED, LED_ON);
+
+	/* Enable and setup SysTick Timer at a periodic rate */
+	SysTick_Config(SystemCoreClock / TICKRATE_HZ1);
+
+	/* LEDs toggle in interrupt handlers */
+	while (1) {
+//		__WFI();
+
+		if (msLED_Flag == true) {
+			msLED_Flag = false;
+
+			Board_LED_Toggle(LED);
+		}
+	}
+
+	return 0;
+}
+
+#define TP1_1 (1)	/* Test periph_systick */
+#define TP1_2 (2)	/* Test LED */
+#define TP1_3 (3)	/* Test RGB */
+#define TP1_4 (4)	/* Test Push Buttons */
+#define TP1_5 (5)	/* Test Joystick Switch */
+#define TP1_6 (6)	/* Test State Machine */
+
+#define TEST	(TP1_1)
+
+
+#if (TEST == TP1_1)
+
+#endif
+
+#if (TEST == TP1_2)
+
+#endif
+
+#if (TEST == TP1_3)
+
+#endif
+
+#if (TEST == TP1_4)
+
+#endif
+
+volatile bool BUTTON1_Flag = false;
+
+		if (msLED_Flag == true) {
+			msLED_Flag = false;
+
+			Board_LED_Toggle(LED);
+		}
+
+		if (BUTTON1_Flag == true) {
+			BUTTON1_Flag = false;
+
+			Board_LED_Toggle(GREEN);
+			Board_LED_Toggle(RED);
+		}
+
+		
+#if (TEST == TP1_7)
+/**
+ * @brief	Handle interrupt from SysTick timer
+ * @return	Nothing
+ */
+void SysTick_Handler(void)
+{
+	if (msLED_Toggle != 0)
+		msLED_Toggle--;
+	else {
+		msLED_Toggle = LED_TOGGLE_250MS;
+		msLED_Flag = true;
+	}
+
+	msBUTTON1_Flag = true;
+
+	if (Buttons_GetStatus() == SW3)
+		BUTTON1_Flag = true;
+	else
+		BUTTON1_Flag = false;
+
+}
+
+/**
+ * @brief	main routine for systick example
+ * @return	Function should not exit.
+ */
+int main(void)
+{
+	uint32_t BUTTON1_State = 0;
+	uint32_t LED_State = 0;
+	bool LED_Toggle_Flag = false;
+
+	/* Generic Initialization */
+	SystemCoreClockUpdate();
+	Board_Init();
+	Board_LED_Set(LED, LED_ON);
+	Board_LED_Set(RED, LED_ON);
+	Board_LED_Set(GREEN, LED_OFF);
+
+	/* Enable and setup SysTick Timer at a periodic rate */
+	SysTick_Config(SystemCoreClock / TICKRATE_HZ1);
+
+	/* LEDs toggle in main */
+	while (1) {
+		__WFI();
+
+		/* LED State Machine */
+		if (msLED_Flag == true) {
+			msLED_Flag = false;
+
+			switch (LED_State) {
+				case 0:
+					if (LED_Toggle_Flag == true) {
+						LED_Toggle_Flag = false;
+						LED_State = 1;
+					}
+					break;
+
+				case 1:
+					Board_LED_Toggle(LED);
+					if (LED_Toggle_Flag == true) {
+						LED_Toggle_Flag = false;
+						LED_State = 0;
+					}
+					break;
+			}
+		}
+
+		/* BUTTON1 State Machine */
+		if (msBUTTON1_Flag == true) {
+			msBUTTON1_Flag = false;
+
+			switch (BUTTON1_State) {
+				case 0:
+					if (BUTTON1_Flag == true) {
+						msBUTTON1_Debounce = 20;
+						BUTTON1_State = 1;
+					}
+					break;
+
+				case 1:
+					if (msBUTTON1_Debounce != 0)
+						msBUTTON1_Debounce--;
+					else {
+						if (BUTTON1_Flag == false) {
+							BUTTON1_State = 0;
+						}
+						else {
+							BUTTON1_Flag = false;
+							BUTTON1_State = 2;
+							Board_LED_Toggle(GREEN);
+							Board_LED_Toggle(RED);
+							LED_Toggle_Flag = true;
+						}
+					}
+					break;
+
+				case 2:
+					if (BUTTON1_Flag == false) {
+						BUTTON1_State = 0;
+					}
+					break;
+			}
+		}
+	}
+
+	return 0;
+}
+#endif
+		
